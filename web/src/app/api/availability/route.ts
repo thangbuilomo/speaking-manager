@@ -17,8 +17,8 @@ export async function POST(request: Request) {
       startTime: new Date(av.startTime),
       endTime: new Date(av.endTime),
       duration: av.duration,
-      type: 'ONE_ON_ONE',
-      status: 'AVAILABLE',
+      type: 'ONE_ON_ONE' as const,
+      status: 'AVAILABLE' as const,
     }));
 
     const result = await prisma.session.createMany({
