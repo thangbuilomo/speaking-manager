@@ -95,10 +95,13 @@ Nếu trước đó bạn đã lỡ commit file `.env` lên lịch sử Git:
 1.  Truy cập [Vercel](https://vercel.com/) và đăng nhập bằng tài khoản GitHub.
 2.  Chọn **Add New** -> **Project**.
 3.  Import Repository GitHub chứa mã nguồn của bạn.
-4.  Tại phần cấu hình dự án, mở rộng mục **Environment Variables** và thêm các biến môi trường sau:
+4.  **Cấu hình thư mục gốc (Root Directory - Quan trọng):**
+    *   Tại phần thiết lập dự án, tìm mục **Root Directory**.
+    *   Nhấp vào nút **Edit** và chọn thư mục **`web`** (do Next.js được đặt trong thư mục con này chứ không phải ở thư mục gốc của repo).
+5.  Tại mục **Environment Variables**, điền các biến môi trường sau:
     *   `DATABASE_URL`: Dán đường link Connection String lấy từ Neon.tech ở Bước 2.
-    *   `NEXTAUTH_SECRET` hoặc các khóa bí mật khác (nếu có).
-5.  Nhấn nút **Deploy**. Quá trình build sẽ mất khoảng 1-2 phút. Sau khi hoàn thành, Vercel sẽ cung cấp một tên miền miễn phí dạng `tên-dự-án.vercel.app`.
+    *   Các biến gửi mail (nếu muốn gửi mail thật): `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` (xem chi tiết ở file `email_config_guide.md`).
+6.  Nhấn nút **Deploy**. Quá trình build sẽ mất khoảng 1-2 phút. Sau khi hoàn thành, Vercel sẽ cung cấp một tên miền miễn phí dạng `tên-dự-án.vercel.app`.
 
 ---
 
