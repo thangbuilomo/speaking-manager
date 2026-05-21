@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  AM
+  TEACHER
+}
+
+enum SessionType {
+  ONE_ON_ONE
+  GROUP
+  MAKEUP
+}
+
+enum SessionStatus {
+  AVAILABLE
+  BOOKED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  STUDENT_ABSENT
+  TEACHER_ABSENT
+  LATE
+  NO_SHOW
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(TEACHER)
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Quan hệ
+  sessionsAsTeacher Session[] @relation("TeacherSessions")
+  createdSessions   Session[] @relation("CreatedBySessions")
+}
+
+model Student {
+  id              String   @id @default(uuid())
+  studentCode     String   @unique
+  name            String
+  email           String?
+  phone           String?
+  package         String?  // Gói học
+  totalSessions   Int      @default(0) // Tổng số buổi
+  usedSessions    Int      @default(0) // Số buổi đã học
+  makeupSessions  Int      @default(0) // Số buổi cần bù
+  cancelledCount  Int      @default(0)
+  lateCount       Int      @default(0)
+  amNote          String?  @db.Text
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+model Session {
+  id          String        @id @default(uuid())
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int           // Thời lượng phút (30, 60, 90, 120)
+  type        SessionType   @default(ONE_ON_ONE)
+  status      SessionStatus @default(AVAILABLE)
+  
+  teacherId   String
+  teacher     User          @relation("TeacherSessions", fields: [teacherId], references: [id])
+  
+  createdBy   String?
+  creator     User?         @relation("CreatedBySessions", fields: [createdBy], references: [id])
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  bookings    Booking[]
+  review      Review?
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  
+  isMakeup  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@unique([sessionId, studentId])
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  sessionId       String   @unique
+  session         Session  @relation(fields: [sessionId], references: [id])
+  
+  attendance      AttendanceStatus @default(PRESENT)
+  
+  // IELTS Scores
+  fluencyScore    Float?
+  lexicalScore    Float?
+  grammarScore    Float?
+  pronunciationScore Float?
+  overallScore    Float?
+  
+  // Comments
+  pronunciationNote String? @db.Text
+  vocabularyNote    String? @db.Text
+  grammarNote       String? @db.Text
+  fluencyNote       String? @db.Text
+  developmentNote   String? @db.Text
+  
+  topicStudied      String?
+  questionsPracticed String?
+  homework          String? @db.Text
+  teacherNote       String? @db.Text // Note cho giáo viên buổi sau
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

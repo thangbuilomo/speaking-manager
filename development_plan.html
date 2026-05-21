@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế Hoạch Phát Triển Hệ Thống Speaking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="max-w-4xl mx-auto py-10 px-6">
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+            <h1 class="text-3xl font-bold text-blue-700 mb-6 border-b pb-4">Kế Hoạch Phát Triển Hệ Thống Quản Lý Ca Học Speaking</h1>
+            
+            <p class="text-gray-600 mb-8">Dựa trên tài liệu <code>web-function.md</code>, hệ thống là một LMS thu nhỏ chuyên biệt cho việc quản lý lịch học Speaking 1-1 và nhóm. Dưới đây là kế hoạch phát triển chi tiết và phân bổ các kỹ năng (Skills) cần thiết.</p>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-8">1. Lộ Trình Phát Triển (Development Roadmap)</h2>
+            <p class="text-sm text-gray-500 mb-6">Dựa vào yêu cầu và các điểm đã chốt ở mục 19, lộ trình được tinh chỉnh lại như sau:</p>
+
+            <div class="space-y-6">
+                <!-- Giai đoạn 1 -->
+                <div class="bg-blue-50 p-5 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Giai đoạn 1: Lõi Hệ Thống & Xếp Lịch (MVP - Tháng 1)</h3>
+                    <p class="mb-2"><strong>Mục tiêu:</strong> Vận hành được quy trình cơ bản: Giáo viên đăng ký lịch ➔ AM xếp lớp ➔ Gửi email xác nhận.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Khởi tạo Database Schema (PostgreSQL).</li>
+                        <li>Hệ thống Auth (Login/Logout/Reset Password). Phân quyền cơ bản.</li>
+                        <li>Dashboard cơ bản cho AM và Giáo viên.</li>
+                        <li>Quản lý Giáo viên: Submit ca rảnh (Availability).</li>
+                        <li>Quản lý Học viên (CRUD cơ bản).</li>
+                        <li>Quản lý Ca học: Tạo ca, gán học viên vào ca.</li>
+                        <li>Lịch hiển thị (Weekly Calendar).</li>
+                        <li>Gửi email xác nhận cơ bản.</li>
+                    </ul>
+                </div>
+
+                <!-- Giai đoạn 2 -->
+                <div class="bg-green-50 p-5 rounded-lg border-l-4 border-green-500">
+                    <h3 class="text-xl font-bold text-green-800 mb-2">Giai đoạn 2: Cổng Học Viên, Đổi Lịch & Nhắc Nhở (Tháng 2)</h3>
+                    <p class="mb-2"><strong>Mục tiêu:</strong> Mở rộng quyền cho học viên tự theo dõi và tự động hóa nhắc lịch.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><strong>Cổng Học Viên (Student Portal):</strong> Đăng nhập, tra cứu lịch học, xem thông tin tài khoản, đổi mật khẩu.</li>
+                        <li>Quản lý Đổi Lịch (Reschedule) & Ca bù (Makeup requests).</li>
+                        <li>Tự động hóa Email: Nhắc buổi sáng, trước 30 phút, đến giờ học.</li>
+                        <li>Gửi email tổng hợp lịch dạy cho giáo viên.</li>
+                        <li>AM: Công cụ tra cứu mật khẩu học viên.</li>
+                    </ul>
+                </div>
+
+                <!-- Giai đoạn 3 -->
+                <div class="bg-purple-50 p-5 rounded-lg border-l-4 border-purple-500">
+                    <h3 class="text-xl font-bold text-purple-800 mb-2">Giai đoạn 3: Đánh Giá & Theo Dõi Tiến Độ (Tháng 3)</h3>
+                    <p class="mb-2"><strong>Mục tiêu:</strong> Số hóa quy trình chấm điểm và nhận xét sau buổi học.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Form đánh giá (Rubric IELTS Speaking).</li>
+                        <li>Nhập nhận xét, bài tập về nhà, lưu ý cho giáo viên sau.</li>
+                        <li>Theo dõi số buổi học (Cập nhật rule tính buổi: No-show tính buổi, ca nhóm 1 bạn nghỉ vẫn tính).</li>
+                        <li>Cảnh báo học viên sắp hết buổi.</li>
+                    </ul>
+                </div>
+
+                <!-- Giai đoạn 4 -->
+                <div class="bg-orange-50 p-5 rounded-lg border-l-4 border-orange-500">
+                    <h3 class="text-xl font-bold text-orange-800 mb-2">Giai đoạn 4: Báo Cáo, Vận Hành & Tối Ưu (Tháng 4)</h3>
+                    <p class="mb-2"><strong>Mục tiêu:</strong> Cung cấp công cụ quản trị cấp cao và chốt lương.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Báo cáo giờ dạy giáo viên (quy đổi giờ).</li>
+                        <li>Báo cáo tiến độ học viên, tỷ lệ nghỉ/hủy.</li>
+                        <li>Export dữ liệu ra Excel/CSV.</li>
+                        <li>Audit logs & Email logs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-10">2. Tính Toán Kỹ Năng (Skills) Cần Thiết Để Phát Triển</h2>
+            <p class="text-gray-600 mb-6">Trong quá trình xây dựng, chúng ta sẽ tận dụng tối đa các <strong>Antigravity Skills</strong> đã được cài đặt trong <code>.agent/skills/</code> cùng với các kỹ năng lập trình (Tech Stack Skills).</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-bold text-indigo-600">🛠️ web-artifacts-builder</h4>
+                    <p class="text-sm text-gray-600 mt-1">Xây dựng các component phức tạp như Weekly Calendar, Modal gán học viên, Student Search Dropdown bằng React, Tailwind, Shadcn UI.</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-bold text-pink-600">🎨 frontend-design & theme-factory</h4>
+                    <p class="text-sm text-gray-600 mt-1">Thiết lập Design System, màu sắc trạng thái ca học, thiết kế Dashboard trực quan, chuyên nghiệp cho AM, Teacher và Student.</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-bold text-teal-600">🧪 webapp-testing</h4>
+                    <p class="text-sm text-gray-600 mt-1">Viết script kiểm thử tự động Playwright cho các luồng quan trọng: xếp lịch trùng, luồng đăng nhập, tính số buổi.</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-bold text-amber-600">📝 doc-coauthoring & internal-comms</h4>
+                    <p class="text-sm text-gray-600 mt-1">Chuẩn hóa API Specification, chốt Database Schema, viết tài liệu vận hành và soạn thảo các mẫu Email tự động chuyên nghiệp.</p>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-800 mb-3 mt-8">Kỹ Năng Công Nghệ (Tech Stack)</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-2 bg-gray-50 p-5 rounded-lg">
+                <li><strong>Frontend:</strong> React, Next.js, Tailwind CSS, Shadcn UI, FullCalendar.</li>
+                <li><strong>Backend:</strong> Node.js (NestJS/Express), BullMQ/Redis cho Background Jobs (Cron gửi email tự động).</li>
+                <li><strong>Database:</strong> PostgreSQL, Prisma/TypeORM.</li>
+                <li><strong>DevOps/Bảo mật:</strong> Docker, GitHub Actions, JWT, RBAC, SendGrid/SES.</li>
+            </ul>
+
+        </div>
+    </div>
+</body>
+</html>

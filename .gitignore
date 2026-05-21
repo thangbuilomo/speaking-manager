@@ -1,0 +1,20 @@
+# Thư mục build và dependencies của Next.js
+web/.next/
+web/node_modules/
+web/out/
+web/build/
+
+# Các file môi trường nhạy cảm (Quan trọng)
+web/.env*
+.env*
+
+# OS & Logs
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright screenshots (kiểm thử UI)
+web/*.png
+*.png
