@@ -4,13 +4,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
   SUPER_ADMIN
   AM
   TEACHER
+  STUDENT
 }
 
 enum SessionType {
@@ -55,7 +55,8 @@ model Student {
   id              String   @id @default(uuid())
   studentCode     String   @unique
   name            String
-  email           String?
+  email           String?  @unique
+  password        String   @default("123456") // Mật khẩu cho Student Portal
   phone           String?
   package         String?  // Gói học
   totalSessions   Int      @default(0) // Tổng số buổi
@@ -68,7 +69,9 @@ model Student {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  bookings Booking[]
+  bookings        Booking[]
+  rescheduleLogs  RescheduleLog[]
+  makeupRequests  MakeupRequest[]
 }
 
 model Session {
@@ -88,8 +91,10 @@ model Session {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  bookings    Booking[]
-  review      Review?
+  bookings        Booking[]
+  review          Review?
+  rescheduleLogs  RescheduleLog[]
+  makeupRequests  MakeupRequest[]
 }
 
 model Booking {
@@ -130,6 +135,42 @@ model Review {
   questionsPracticed String?
   homework          String? @db.Text
   teacherNote       String? @db.Text // Note cho giáo viên buổi sau
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model RescheduleLog {
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         Session  @relation(fields: [sessionId], references: [id])
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id])
+  
+  oldStartTime    DateTime
+  oldEndTime      DateTime
+  newStartTime    DateTime
+  newEndTime      DateTime
+  
+  changedById     String
+  changedByRole   String   // 'AM' | 'TEACHER' | 'STUDENT'
+  reason          String   @db.Text
+  note            String?  @db.Text
+  
+  createdAt       DateTime @default(now())
+}
+
+model MakeupRequest {
+  id                String   @id @default(uuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  originalSessionId String
+  originalSession   Session  @relation(fields: [originalSessionId], references: [id])
+  
+  preferredNote     String?  @db.Text
+  targetWeekStart   DateTime
+  targetWeekEnd     DateTime
+  status            String   @default("PENDING") // PENDING, SCHEDULED, CANCELLED
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

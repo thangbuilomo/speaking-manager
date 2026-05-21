@@ -20,8 +20,10 @@ export default function LoginPage() {
         router.push("/teacher/dashboard");
       } else if (email.includes("am")) {
         router.push("/am/dashboard");
+      } else if (email.includes("student")) {
+        router.push("/student/dashboard");
       } else {
-        alert("Vui lòng đăng nhập với email chứa 'teacher' hoặc 'am' để test!");
+        alert("Vui lòng đăng nhập với email chứa 'teacher', 'am' hoặc 'student' để test!");
         setIsLoading(false);
       }
     }, 600);
@@ -154,6 +156,7 @@ export default function LoginPage() {
             <div className="mt-6 text-sm text-slate-600 space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-100">
               <p>👉 Nhập <span className="font-semibold text-blue-600">teacher@</span> để vào Dashboard Giáo Viên.</p>
               <p>👉 Nhập <span className="font-semibold text-blue-600">am@</span> để vào Dashboard Quản lý (AM).</p>
+              <p>👉 Nhập <span className="font-semibold text-blue-600">student@</span> để vào Cổng Học Viên.</p>
             </div>
           </div>
         </div>

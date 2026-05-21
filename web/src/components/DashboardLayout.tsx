@@ -15,7 +15,7 @@ import {
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  role: "am" | "teacher";
+  role: "am" | "teacher" | "student";
   userName: string;
 }
 
@@ -32,10 +32,13 @@ export default function DashboardLayout({ children, role, userName }: DashboardL
     { name: "Học viên", href: "/am/students", icon: Users },
     { name: "Giáo viên", href: "/am/teachers", icon: BookOpen },
     { name: "Cài đặt", href: "/am/settings", icon: Settings },
-  ] : [
+  ] : role === "teacher" ? [
     { name: "Tổng quan", href: "/teacher/dashboard", icon: LayoutDashboard },
     { name: "Lịch dạy của tôi", href: "/teacher/calendar", icon: CalendarIcon },
     { name: "Đăng ký ca rảnh", href: "/teacher/availability", icon: BookOpen },
+  ] : [
+    { name: "Lịch học của tôi", href: "/student/dashboard", icon: CalendarIcon },
+    { name: "Đổi lịch & ca bù", href: "/student/reschedule", icon: Settings },
   ];
 
   return (
@@ -93,7 +96,7 @@ export default function DashboardLayout({ children, role, userName }: DashboardL
         {/* Top header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
           <h1 className="text-xl font-semibold text-slate-800">
-            {role === "am" ? "Dashboard Quản Lý" : "Dashboard Giáo Viên"}
+            {role === "am" ? "Dashboard Quản Lý" : role === "teacher" ? "Dashboard Giáo Viên" : "Cổng Học Viên"}
           </h1>
           <div className="flex items-center space-x-4">
             <button className="text-slate-400 hover:text-slate-600 relative">

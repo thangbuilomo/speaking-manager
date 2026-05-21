@@ -13,17 +13,35 @@ export async function POST(request: Request) {
     }
 
     // Tìm user
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email }
     });
 
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Tài khoản không tồn tại' }, { status: 404 });
-    }
+    let role = user?.role;
+    let name = user?.name;
+    let id = user?.id;
 
-    // Todo: Ở môi trường thực tế cần dùng bcrypt.compare, ở đây check plain text hoặc simple hash cho demo
-    if (user.password !== password) {
-      return NextResponse.json({ success: false, error: 'Mật khẩu không chính xác' }, { status: 401 });
+    if (!user) {
+      // Nếu không phải admin/teacher/am, kiểm tra xem có phải học viên không
+      const student = await prisma.student.findUnique({
+        where: { email }
+      });
+
+      if (!student) {
+        return NextResponse.json({ success: false, error: 'Tài khoản không tồn tại' }, { status: 404 });
+      }
+
+      if (student.password !== password) {
+        return NextResponse.json({ success: false, error: 'Mật khẩu không chính xác' }, { status: 401 });
+      }
+
+      id = student.id;
+      name = student.name;
+      role = 'STUDENT';
+    } else {
+      if (user.password !== password) {
+        return NextResponse.json({ success: false, error: 'Mật khẩu không chính xác' }, { status: 401 });
+      }
     }
 
     // Tạo token đơn giản cho demo (thực tế dùng JWT)
@@ -34,10 +52,10 @@ export async function POST(request: Request) {
       data: {
         token: mockToken,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
+          id,
+          name,
+          email,
+          role
         }
       } 
     }, { status: 200 });
