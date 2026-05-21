@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { sendEmail } from '@/lib/mail';
 
-// Cron API Endpoint to trigger reminders
-// This API can be scheduled via Vercel Cron or any external cron service
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // 'morning' (7:00 AM) or 'before_30_min'
+    const type = searchParams.get('type'); // 'morning', 'before_30_min', or 'teacher_summary'
     
     const now = new Date();
     
@@ -33,24 +32,59 @@ export async function GET(request: Request) {
 
       console.log(`[Cron Morning Reminder] Found ${todaySessions.length} sessions today.`);
       
-      const sentReminders = todaySessions.map(session => {
-        const studentEmails = session.bookings.map(b => b.student.email).filter(Boolean);
+      const sentReminders = [];
+      
+      for (const session of todaySessions) {
+        const studentEmails = session.bookings.map(b => b.student.email).filter(Boolean) as string[];
         const startTimeStr = session.startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         
-        // Mock gửi mail bằng log console
-        console.log(`✉️ Gửi email nhắc lịch buổi sáng tới Học viên: ${studentEmails.join(', ')} | Ca: ${startTimeStr} với ${session.teacher.name}`);
-        
-        return {
-          sessionId: session.id,
-          recipientCount: studentEmails.length,
-          type: 'MORNING_REMINDER'
-        };
-      });
+        if (studentEmails.length > 0) {
+          const studentNames = session.bookings.map(b => b.student.name).join(', ');
+          
+          const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-lg: 8px;">
+              <h2 style="color: #2563eb;">Nhắc lịch học Speaking hôm nay</h2>
+              <p>Chào bạn <strong>${studentNames}</strong>,</p>
+              <p>Hệ thống xin nhắc lịch học IELTS Speaking của bạn trong ngày hôm nay:</p>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9; font-weight: bold; width: 120px;">Thời gian:</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${startTimeStr} hôm nay</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9; font-weight: bold;">Giảng viên:</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${session.teacher.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9; font-weight: bold;">Hình thức:</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">Speaking 1-1 Online</td>
+                </tr>
+              </table>
+              <p style="color: #64748b; font-size: 14px;">Chúc bạn có buổi học tập hiệu quả. Vui lòng vào lớp đúng giờ!</p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+              <p style="font-size: 12px; color: #94a3b8; text-align: center;">Email này được gửi tự động từ hệ thống IELTS Speaking Manager.</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: studentEmails,
+            subject: `[Nhắc lịch] Lịch học IELTS Speaking hôm nay lúc ${startTimeStr}`,
+            html: htmlContent
+          });
+
+          sentReminders.push({
+            sessionId: session.id,
+            recipients: studentEmails,
+            time: startTimeStr
+          });
+        }
+      }
 
       return NextResponse.json({ 
         success: true, 
         message: 'Đã xử lý email nhắc lịch buổi sáng 07:00 thành công.', 
-        sent: sentReminders 
+        sentCount: sentReminders.length,
+        details: sentReminders
       });
 
     } else if (type === 'before_30_min') {
@@ -76,23 +110,50 @@ export async function GET(request: Request) {
 
       console.log(`[Cron 30m Reminder] Found ${upcomingSessions.length} sessions starting in 30-45 mins.`);
 
-      const sentReminders = upcomingSessions.map(session => {
-        const studentEmails = session.bookings.map(b => b.student.email).filter(Boolean);
+      const sentReminders = [];
+
+      for (const session of upcomingSessions) {
+        const studentEmails = session.bookings.map(b => b.student.email).filter(Boolean) as string[];
         const startTimeStr = session.startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-        console.log(`✉️ Gửi email nhắc trước 30 phút tới Học viên: ${studentEmails.join(', ')} | Sắp bắt đầu lúc: ${startTimeStr}`);
+        if (studentEmails.length > 0) {
+          const studentNames = session.bookings.map(b => b.student.name).join(', ');
 
-        return {
-          sessionId: session.id,
-          recipientCount: studentEmails.length,
-          type: '30_MIN_REMINDER'
-        };
-      });
+          const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-lg: 8px;">
+              <h2 style="color: #dc2626;">Lớp học Speaking sắp bắt đầu sau 30 phút</h2>
+              <p>Chào bạn <strong>${studentNames}</strong>,</p>
+              <p>Lớp học Speaking của bạn với giảng viên <strong>${session.teacher.name}</strong> sẽ bắt đầu vào lúc <strong>${startTimeStr}</strong> (sau 30 phút nữa).</p>
+              <p>Vui lòng chuẩn bị máy tính, tai nghe và kết nối internet ổn định để vào lớp học đúng giờ.</p>
+              <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; margin: 15px 0;">
+                <strong>Chi tiết lớp học:</strong><br>
+                • Thời gian: ${startTimeStr} - ${session.startTime.getHours()}:${(session.startTime.getMinutes() + session.duration).toString().padStart(2, '0')}<br>
+                • Giảng viên: ${session.teacher.name}<br>
+              </div>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+              <p style="font-size: 12px; color: #94a3b8; text-align: center;">Hệ thống IELTS Speaking Manager.</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: studentEmails,
+            subject: `[Khẩn cấp - 30 Phút] Lớp học Speaking của bạn sắp bắt đầu lúc ${startTimeStr}`,
+            html: htmlContent
+          });
+
+          sentReminders.push({
+            sessionId: session.id,
+            recipients: studentEmails,
+            time: startTimeStr
+          });
+        }
+      }
 
       return NextResponse.json({ 
         success: true, 
         message: 'Đã xử lý email nhắc nhở trước 30 phút thành công.', 
-        sent: sentReminders 
+        sentCount: sentReminders.length,
+        details: sentReminders
       });
 
     } else if (type === 'teacher_summary') {
@@ -120,21 +181,50 @@ export async function GET(request: Request) {
 
       console.log(`[Cron Teacher Summary] Found ${teachers.length} active teachers.`);
 
-      const sentSummaries = teachers.map(teacher => {
-        const sessionCount = teacher.sessionsAsTeacher.length;
-        console.log(`✉️ Gửi email tổng hợp tới Giáo viên: ${teacher.email} | Số ca dạy tuần tới: ${sessionCount}`);
-        
-        return {
-          teacherId: teacher.id,
-          email: teacher.email,
-          sessionsCount: sessionCount
-        };
-      });
+      const sentSummaries = [];
+
+      for (const teacher of teachers) {
+        if (teacher.sessionsAsTeacher.length > 0) {
+          const sessionsListHtml = teacher.sessionsAsTeacher.map(s => {
+            const dateStr = s.startTime.toLocaleDateString('vi-VN');
+            const timeStr = s.startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const studentName = s.bookings.map(b => b.student.name).join(', ') || 'Chưa gán';
+            return `<li><strong>${dateStr} (${timeStr})</strong>: Học viên ${studentName}</li>`;
+          }).join('');
+
+          const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-lg: 8px;">
+              <h2 style="color: #0d9488;">Tổng hợp lịch dạy tuần tới</h2>
+              <p>Chào Thầy/Cô <strong>${teacher.name}</strong>,</p>
+              <p>Dưới đây là danh sách các ca học Speaking đã được xếp lịch dạy của Thầy/Cô trong vòng 7 ngày tới:</p>
+              <ul style="line-height: 1.6; padding-left: 20px;">
+                ${sessionsListHtml}
+              </ul>
+              <p>Thầy/Cô vui lòng cập nhật nhận xét và điểm IELTS của học viên ngay sau khi buổi học kết thúc trên Dashboard.</p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+              <p style="font-size: 12px; color: #94a3b8; text-align: center;">Hệ thống IELTS Speaking Manager.</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: teacher.email,
+            subject: `[Lịch dạy] Tổng hợp lịch dạy tuần mới của Thầy/Cô ${teacher.name}`,
+            html: htmlContent
+          });
+
+          sentSummaries.push({
+            teacherId: teacher.id,
+            email: teacher.email,
+            sessionsCount: teacher.sessionsAsTeacher.length
+          });
+        }
+      }
 
       return NextResponse.json({
         success: true,
         message: 'Đã xử lý email tổng hợp lịch dạy cho giáo viên thành công.',
-        sent: sentSummaries
+        sentCount: sentSummaries.length,
+        details: sentSummaries
       });
 
     } else {
